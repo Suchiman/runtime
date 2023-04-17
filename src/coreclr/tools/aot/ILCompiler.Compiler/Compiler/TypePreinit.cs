@@ -77,6 +77,11 @@ namespace ILCompiler
             if (!policy.CanPreinitialize(type))
                 return new PreinitializationInfo(type, "Disallowed by policy");
 
+            if (type.ToString().EndsWith("System.Exception"))
+            {
+
+            }
+
             TypePreinit preinit = null;
 
             Status status;
@@ -943,7 +948,7 @@ namespace ILCompiler
                             }
 
                             ILOpcode normalizedOpcode = opcode >= ILOpcode.br ?
-                                opcode - ILOpcode.br + ILOpcode.br_s:
+                                opcode - ILOpcode.br + ILOpcode.br_s :
                                 opcode;
 
                             bool branchTaken;
@@ -1175,9 +1180,12 @@ namespace ILCompiler
                             bool isDivRem = opcode == ILOpcode.div || opcode == ILOpcode.div_un
                                 || opcode == ILOpcode.rem || opcode == ILOpcode.rem_un;
 
+                            StackValueKind nativeIntSize = context.Target.PointerSize == 8 ? StackValueKind.Int64 : StackValueKind.Int32;
                             StackEntry value2 = stack.Pop();
                             StackEntry value1 = stack.Pop();
-                            if (value1.ValueKind == StackValueKind.Int32 && value2.ValueKind == StackValueKind.Int32)
+                            StackValueKind value1Kind = value1.ValueKind == StackValueKind.NativeInt ? nativeIntSize : value1.ValueKind;
+                            StackValueKind value2Kind = value2.ValueKind == StackValueKind.NativeInt ? nativeIntSize : value2.ValueKind;
+                            if (value1Kind == StackValueKind.Int32 && value2Kind == StackValueKind.Int32)
                             {
                                 if (isDivRem && value2.Value.AsInt32() == 0)
                                     return Status.Fail(methodIL.OwningMethod, opcode, "Division by zero");
@@ -1197,9 +1205,9 @@ namespace ILCompiler
                                     _ => throw new NotImplementedException(), // unreachable
                                 };
 
-                                stack.Push(StackValueKind.Int32, ValueTypeValue.FromInt32(result));
+                                stack.Push(value1.ValueKind, ValueTypeValue.FromInt32(result));
                             }
-                            else if (value1.ValueKind == StackValueKind.Int64 && value2.ValueKind == StackValueKind.Int64)
+                            else if (value1Kind == StackValueKind.Int64 && value2Kind == StackValueKind.Int64)
                             {
                                 if (isDivRem && value2.Value.AsInt64() == 0)
                                     return Status.Fail(methodIL.OwningMethod, opcode, "Division by zero");
@@ -1218,9 +1226,9 @@ namespace ILCompiler
                                     _ => throw new NotImplementedException(), // unreachable
                                 };
 
-                                stack.Push(StackValueKind.Int64, ValueTypeValue.FromInt64(result));
+                                stack.Push(value1.ValueKind, ValueTypeValue.FromInt64(result));
                             }
-                            else if (value1.ValueKind == StackValueKind.Float && value2.ValueKind == StackValueKind.Float)
+                            else if (value1Kind == StackValueKind.Float && value2Kind == StackValueKind.Float)
                             {
                                 if (isDivRem && value2.Value.AsDouble() == 0)
                                     return Status.Fail(methodIL.OwningMethod, opcode, "Division by zero");
@@ -1240,11 +1248,11 @@ namespace ILCompiler
 
                                 stack.Push(StackValueKind.Float, ValueTypeValue.FromDouble(result));
                             }
-                            else if (value1.ValueKind == StackValueKind.Int64 && value2.ValueKind == StackValueKind.Int32
+                            else if (value1Kind == StackValueKind.Int64 && value2Kind == StackValueKind.Int32
                                 && opcode == ILOpcode.shl)
                             {
                                 long result = value1.Value.AsInt64() << value2.Value.AsInt32();
-                                stack.Push(StackValueKind.Int64, ValueTypeValue.FromInt64(result));
+                                stack.Push(value1.ValueKind, ValueTypeValue.FromInt64(result));
                             }
                             else
                             {
@@ -1465,9 +1473,9 @@ namespace ILCompiler
                         break;
 
                     case ILOpcode.constrained:
-                        // Fallthrough. If this is ever implemented, make sure delegates to static virtual methods
-                        // are also handled. We currently assume the frozen delegate will not be to a static
-                        // virtual interface method.
+                    // Fallthrough. If this is ever implemented, make sure delegates to static virtual methods
+                    // are also handled. We currently assume the frozen delegate will not be to a static
+                    // virtual interface method.
                     default:
                         return Status.Fail(methodIL.OwningMethod, opcode);
                 }
@@ -1711,8 +1719,8 @@ namespace ILCompiler
                                 case TypeFlags.UInt16:
                                 case TypeFlags.Char:
                                     return ValueTypeValue.FromInt16((short)value);
-                                // case TypeFlags.IntPtr: sign extend
-                                // case TypeFlags.UIntPtr: zero extend
+                                    // case TypeFlags.IntPtr: sign extend
+                                    // case TypeFlags.UIntPtr: zero extend
                             }
                             ThrowHelper.ThrowInvalidProgramException();
                         }
@@ -1739,7 +1747,7 @@ namespace ILCompiler
                                 case TypeFlags.Int32:
                                 case TypeFlags.UInt32:
                                     return ValueTypeValue.FromInt32((int)value);
-                                // case TypeFlags.ByRef: start GC tracking
+                                    // case TypeFlags.ByRef: start GC tracking
                             }
 
                             ThrowHelper.ThrowInvalidProgramException();

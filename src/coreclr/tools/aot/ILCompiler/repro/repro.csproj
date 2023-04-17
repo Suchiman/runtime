@@ -2,14 +2,15 @@
   <PropertyGroup>
     <TargetFramework>$(NetCoreAppToolCurrent)</TargetFramework>
     <OutputType>Exe</OutputType>
-    <Platforms>x64;x86</Platforms>
+    <Platforms>x64</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <RuntimeIdentifiers>linux-x64;win-x64;osx-x64;freebsd-x64;freebsd-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Configurations>Debug;Release;Checked</Configurations>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RunAnalyzers>false</RunAnalyzers>
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <Target Name="GenerateReproProjectResponseFile"
@@ -34,6 +35,7 @@
       <ReproResponseLines Include="--directpinvoke:System.IO.Compression.Native" />
       <ReproResponseLines Include="--stacktracedata" />
       <ReproResponseLines Include="--scanreflection" />
+      <ReproResponseLines Include="--reflectiondata:all" />
       <ReproResponseLines Include="--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false" />
       <ReproResponseLines Include="--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false" />
       <ReproResponseLines Include="--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false" />

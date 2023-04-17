@@ -850,10 +850,36 @@ unsafe class TestFunctionPointers
         internal static void X() { }
     }
 
+    static class SimpleTest
+    {
+        public unsafe static readonly delegate*<int> MethodFunc = &MethodTaken;
+
+        public static int MethodTaken()
+        {
+            return 42;
+        }
+    }
+
+    static class GenericTest<T>
+    {
+        public unsafe static readonly delegate*<T, T> MethodFunc = &MethodTaken;
+
+        public static T MethodTaken(T value)
+        {
+            return value;
+        }
+    }
+
     public static void Run()
     {
         Assert.IsLazyInitialized(typeof(WithFunctionPointer));
         Assert.AreEqual(WithFunctionPointer.s_foo.Ptr, (delegate*<void>)&WithFunctionPointer.X);
+
+        Assert.IsPreinitialized(typeof(SimpleTest));
+        Assert.AreEqual(42, SimpleTest.MethodFunc());
+
+        Assert.IsPreinitialized(typeof(GenericTest<string>));
+        Assert.AreEqual("Hello", GenericTest<string>.MethodFunc("Hello"));
     }
 }
 
@@ -1081,66 +1107,66 @@ static class Assert
     public static void IsPreinitialized(Type type)
     {
         if (HasCctor(type))
-            throw new Exception();
+            throw new Exception($"Expected {type} to be Preinitialized");
     }
 
     public static void IsLazyInitialized(Type type)
     {
         if (!HasCctor(type))
-            throw new Exception();
+            throw new Exception($"Expected {type} to be LazyInitialized");
     }
 
     public static unsafe void AreEqual(void* v1, void* v2)
     {
         if (v1 != v2)
-            throw new Exception();
+            throw new Exception("Expected AreEqual");
     }
 
     public static unsafe void AreEqual(bool v1, bool v2)
     {
         if (v1 != v2)
-            throw new Exception();
+            throw new Exception("Expected AreEqual");
     }
 
     public static unsafe void AreEqual(int v1, int v2)
     {
         if (v1 != v2)
-            throw new Exception();
+            throw new Exception("Expected AreEqual");
     }
 
     public static void AreEqual(string v1, string v2)
     {
         if (v1 != v2)
-            throw new Exception();
+            throw new Exception("Expected AreEqual");
     }
 
     public static unsafe void AreEqual(long v1, long v2)
     {
         if (v1 != v2)
-            throw new Exception();
+            throw new Exception("Expected AreEqual");
     }
 
     public static unsafe void AreEqual(float v1, float v2)
     {
         if (v1 != v2)
-            throw new Exception();
+            throw new Exception("Expected AreEqual");
     }
 
     public static unsafe void AreEqual(double v1, double v2)
     {
         if (v1 != v2)
-            throw new Exception();
+            throw new Exception("Expected AreEqual");
     }
 
-    public static void True(bool v)
+    public static void True(bool v, [CallerArgumentExpression(nameof(v))] string exp = default)
     {
         if (!v)
-            throw new Exception();
+            Console.WriteLine($"Expected {exp} to be True");
     }
 
     public static void AreSame<T>(T v1, T v2) where T : class
     {
         if (v1 != v2)
-            throw new Exception();
+            throw new Exception("Expected AreSame");
     }
 }
