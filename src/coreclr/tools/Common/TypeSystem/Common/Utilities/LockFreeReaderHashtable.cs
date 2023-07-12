@@ -653,7 +653,7 @@ namespace Internal.TypeSystem
         /// but not others. All values in the hashtable as of enumerator
         /// creation will always be enumerated.
         /// </summary>
-        public struct Enumerator : IEnumerator<TValue>
+        public struct Enumerator : IEnumerator<TValue>, IEnumerable<TValue>
         {
             private TValue[] _hashtableContentsToEnumerate;
             private TValue _sentinel;
@@ -724,6 +724,9 @@ namespace Internal.TypeSystem
             {
                 throw new NotSupportedException();
             }
+
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
             public TValue Current
             {

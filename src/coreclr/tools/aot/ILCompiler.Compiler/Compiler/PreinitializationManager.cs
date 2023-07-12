@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
+using System.Linq;
 using Internal.IL;
 using Internal.TypeSystem;
 
@@ -104,7 +105,7 @@ namespace ILCompiler
 
             if (logger.IsVerbose)
             {
-                foreach (var item in LockFreeReaderHashtable<MetadataType, TypePreinit.PreinitializationInfo>.Enumerator.Get(_preinitHashTable))
+                foreach (var item in LockFreeReaderHashtable<MetadataType, TypePreinit.PreinitializationInfo>.Enumerator.Get(_preinitHashTable).OrderBy(x => x.Type.ToString()))
                 {
                     // Canonical types are not actual types. They represent the pessimized version of all types that share the form.
                     if (item.Type.IsCanonicalSubtype(CanonicalFormKind.Any))
