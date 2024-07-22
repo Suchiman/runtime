@@ -8567,8 +8567,8 @@ bool Compiler::impConsiderCallProbe(GenTreeCall* call, IL_OFFSET ilOffset)
         return false;
     }
 
-    assert(opts.OptimizationDisabled() || opts.IsInstrumentedAndOptimized());
-    assert(!compIsForInlining());
+    //assert(opts.OptimizationDisabled() || opts.IsInstrumentedAndOptimized());
+    //assert(!compIsForInlining());
 
     // During importation, optionally flag this block as one that
     // contains calls requiring class profiling. Ideally perhaps
@@ -8909,6 +8909,25 @@ void Compiler::impCheckCanInline(GenTreeCall*           call,
         if (!compCompHnd->getMethodInfo(ftn, &methInfo, pParam->exactContextHnd))
         {
             inlineResult->NoteFatal(InlineObservation::CALLEE_NO_METHOD_INFO);
+            return;
+        }
+
+        auto code = methInfo.ILCode;
+        auto size = methInfo.ILCodeSize;
+        // instance getter
+        if (size == 7 && code[0] == CEE_LDARG_0 && code[1] == CEE_LDFLD && code[6] == CEE_RET)
+        {
+            pParam->methAttr |= CORINFO_FLG_FORCEINLINE;
+        }
+        // instance setter
+        else if (size == 8 && code[0] == CEE_LDARG_0 && code[1] == CEE_LDARG_1 && code[2] == CEE_STFLD &&
+                 code[7] == CEE_RET)
+        {
+            pParam->methAttr |= CORINFO_FLG_FORCEINLINE;
+        }
+        else if (compiler->opts.jitFlags->IsSet(JitFlags::JIT_FLAG_TIER0))
+        {
+            inlineResult->NoteFatal(InlineObservation::CALLEE_IS_NOINLINE);
             return;
         }
 

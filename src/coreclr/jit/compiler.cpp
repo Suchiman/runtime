@@ -2463,6 +2463,11 @@ void Compiler::compInitOptions(JitFlags* jitFlags)
         jitFlags->IsSet(JitFlags::JIT_FLAG_TIER0))
     {
         opts.compFlags = CLFLG_MINOPT;
+
+        if (jitFlags->IsSet(JitFlags::JIT_FLAG_TIER0))
+        {
+            opts.compFlags |= CLFLG_INLINING;
+        }
     }
 
     // Default value is to generate a blend of size and speed optimizations
@@ -7726,8 +7731,8 @@ VarScopeDsc* Compiler::compGetNextExitScope(unsigned offs, bool scan)
 
 void Compiler::compProcessScopesUntil(unsigned   offset,
                                       VARSET_TP* inScope,
-                                      void (Compiler::*enterScopeFn)(VARSET_TP* inScope, VarScopeDsc*),
-                                      void (Compiler::*exitScopeFn)(VARSET_TP* inScope, VarScopeDsc*))
+                                      void       (Compiler::*enterScopeFn)(VARSET_TP* inScope, VarScopeDsc*),
+                                      void       (Compiler::*exitScopeFn)(VARSET_TP* inScope, VarScopeDsc*))
 {
     assert(offset != BAD_IL_OFFSET);
     assert(inScope != nullptr);
